@@ -1,0 +1,128 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_Products.cshtml";
+}
+<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+<div class="form">
+    <div>
+        <div class="heading">
+            <i class="fa fa-lock"></i>Add Product
+        </div>
+        <form action="/Products/Edit" method="POST" id="newProduct" enctype="multipart/form-data">
+            <input name="id" type="number" value="@ViewBag.Product.productId" hidden>
+            <label for="name">Name</label><span class="alerts" id="nameAlert"></span>
+            <input type="text" name="name" id="name" value="@ViewBag.Product.name" placeholder="Name..." required>
+            <label for="price">Price</label><span class="alerts" id="priceAlert"></span>
+            <input type="number" name="price" id="price" value="@ViewBag.Product.price" placeholder="Price..." required>
+            <label for="type">Type Select</label>
+            <select name="type" id="type" required>
+                <option value="0">--- Choose Type ---</option>
+                @foreach (var item in ViewBag.Types)
+                {
+                    string selected = null;
+                    if (ViewBag.Product.typeId == item.typeId) { selected = "selected"; }
+                    <option value='@item.typeId' @selected>
+                        @item.typeName
+                    </option>
+                }
+            </select>
+            <label for="desc">Description</label><span class="alerts" id="descAlert"></span>
+            <textarea type="text" name="desc" id="desc" placeholder="Description..." required>@ViewBag.Product.description</textarea>
+            <label for="img">Picture</label>
+            <input type="file" id="img" name="picURL" />
+            <button type="submit" name="submit" form="newProduct">Update Product</button>
+        </form>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            var initialName = $("#name").val();
+            var nameFlag = true;
+            var name = $("#name");
+            name.on('input', function () {
+
+                var products = [];
+                var settings = {
+                    type: "POST",
+                    dataType: "json",
+                    url:'@Url.Action("GetProductNames", "Products")',
+                    success: function (response) {
+                        products = response.data;
+                        const found = products.some(
+                            (product) => product.Name === name.val()
+                        );
+                        if (name.val().length < 3 && name.val().length != 0) {
+                            $("#nameAlert").text("Length must be greater or equal to 3");
+                            nameFlag = false;
+                        } else if (found && name.val().length != 0 && name.val() !== initialName) {
+                            $("#nameAlert").text("This Product Already Exists!");
+                            nameFlag = false;
+                        } else {
+                            $("#nameAlert").text("");
+                            nameFlag = true;
+                        }
+                    },
+                    error: function (err, type, httpStatus) {
+                        alert('Error has occured');
+                    }
+                };
+
+                $.ajax(settings);
+            })
+
+            var priceFlag = true;
+            var price = $("#price");
+            price.on('input', function () {
+                if (price.val() < 0) {
+                    $("#priceAlert").text("Must be a positive number!");
+                    priceFlag = false;
+                } else {
+                    $("#priceAlert").text("");
+                    priceFlag = true;
+                }
+            })
+
+            var descFlag = true;
+            var desc = $("#desc");
+            desc.on('input', function () {
+
+                console.log($("#type").children("option:selected").val());
+                if (desc.val().length > 100) {
+                    $("#descAlert").text("Characters limit exceeded! Max 100 characters.");
+                    descFlag = false;
+                } else {
+                    $("#descAlert").text("");
+                    descFlag = true;
+                }
+            })
+
+
+            var submit = $("#newProduct");
+            submit.on('submit', function (event) {
+                if ($("#type").children("option:selected").val() == 0) {
+                    alert("Select a Type!");
+                    event.preventDefault();
+                    return false;
+                }
+                if (nameFlag && priceFlag && descFlag) {
+                    return;
+                }
+                event.preventDefault();
+            })
+
+
+
+        })
+    </script>
+}
+
+@section styles{
+    <styles>
+        body {
+            justify-content: center;
+        }
+    </styles>
+}

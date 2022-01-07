@@ -1,0 +1,107 @@
+﻿
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_User.cshtml";
+}
+<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+<div class="form">
+    <div>
+        <div class="heading">
+            <i class="fa fa-lock"></i>Sign Up
+        </div>
+        <form action="/Account/Save" method="POST" id="signUp" enctype="multipart/form-data">
+            <label for="name">Name</label><span class="alerts" id="nameAlert"></span>
+            <input type="text" name="name" id="name" placeholder="Name..." required>
+            <label for="password">Password</label><span class="alerts" id="passwordAlert"></span>
+            <input type="password" name="password" id="password" placeholder="Password..." required>
+            <label for="login">Login</label><span class="alerts" id="loginAlert"></span>
+            <input type="text" name="login" id="login" placeholder="Login..." required>
+            <label for="picURL">Picture</label>
+            <input type="file" id="picURL" name="picURL" />
+            <button type="submit" name="submit" form="signUp">Sign Up</button>
+        </form>
+    </div>
+</div>
+<button class="logout" onclick="window.location.href = '/Account/Login';">Sign In</button>
+
+
+@section styles{
+    <style>
+        body {
+            justify-content: center;
+        }
+    </style>
+}
+
+@section scripts {
+    <script>
+    $(document).ready(function () {
+        var loginFlag = true;
+        var passwordFlag = true;
+        var nameFlag = true;
+        var name = $("#name");
+        name.on('input', function () {
+            var nameRegex = /^[a-z .-]+$/i;
+            if (!nameRegex.test(name.val()) && name.val().length != 0) {
+                $("#nameAlert").text("Only use Alphabet for this field!");
+                nameFlag = false;
+            } else {
+                $("#nameAlert").text("");
+                nameFlag = true;
+            }
+        })
+
+        var password = $("#password");
+        password.on('input', function () {
+            console.log(password.val().length);
+            if (password.val().length < 8 && password.val().length != 0) {
+                $("#passwordAlert").text("Password Length must be greater >= 8!");
+                passwordFlag = false;
+            } else {
+                $("#passwordAlert").text("");
+                passwordFlag = true;
+            }
+        })
+
+        var login = $("#login");
+        login.on('input', function () {
+            var users = [];
+            var settings = {
+                type: "POST",
+                dataType: "json",
+                url: '@Url.Action("API", "Account")',
+                data: {action: "getLogins"},
+                success: function (response) {
+                    users = response.data;
+                    const found = users.some(
+                        (user) => user === login.val()
+                    );
+                    if (found && login.val().length != 0) {
+                        $("#loginAlert").text("This Login Already Exists!");
+                        loginFlag = false;
+                    } else {
+                        $("#loginAlert").text("");
+                        loginFlag = true;
+                    }
+                },
+                error: function (err, type, httpStatus) {
+                    alert('Error has occured');
+                }
+            };
+
+            $.ajax(settings);
+        })
+
+        var submit = $("#signUp");
+        submit.on('submit', function (event) {
+            if (nameFlag && passwordFlag && loginFlag) {
+                return;
+            }
+            event.preventDefault();
+
+        })
+    })
+    </script>
+}
+
+

@@ -1,0 +1,75 @@
+﻿
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_User.cshtml";
+}
+<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+<div class="form">
+    <div>
+        <div class="heading">
+            <i class="fa fa-lock"></i>Update Profile
+        </div>
+        <form action="/Account/Edit" method="POST" id="signUp" enctype="multipart/form-data">
+            <input name="id" type="number" value="@ViewBag.User.userId" hidden>
+            <label for="name">Name</label><span class="alerts" id="nameAlert"></span>
+            <input type="text" name="name" id="name" value="@ViewBag.User.name" placeholder="Name..." required>
+            <label for="password">Password</label><span class="alerts" id="passwordAlert"></span>
+            <input type="password" name="password" id="password" value="@ViewBag.User.password" placeholder="Password..." required>
+            <label for="login">Login</label><span class="alerts" id="loginAlert"></span>
+            <input type="text" name="login" id="login" value="@ViewBag.User.login" placeholder="Login..." readonly>
+            <label for="picURL">Picture</label>
+            <input type="file" id="picURL" name="picURL" />
+            <button type="submit" name="submit" form="signUp">Update Profile</button>
+        </form>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            var passwordFlag = true;
+            var nameFlag = true;
+            var name = $("#name");
+            name.on('input', function () {
+                var nameRegex = /^[a-z .-]+$/i;
+                if (!nameRegex.test(name.val()) && name.val().length != 0) {
+                    $("#nameAlert").text("Only use Alphabet for this field!");
+                    nameFlag = false;
+                } else {
+                    $("#nameAlert").text("");
+                    nameFlag = true;
+                }
+            })
+
+            var password = $("#password");
+            password.on('input', function () {
+                console.log(password.val().length);
+                if (password.val().length < 8 && password.val().length != 0) {
+                    $("#passwordAlert").text("Password Length must be greater >= 8!");
+                    passwordFlag = false;
+                } else {
+                    $("#passwordAlert").text("");
+                    passwordFlag = true;
+                }
+            })
+
+            var submit = $("#signUp");
+            submit.on('submit', function (event) {
+                if (nameFlag && passwordFlag) {
+                    return;
+                }
+                event.preventDefault();
+
+            })
+        })
+    </script>
+}
+@section styles{
+    <style>
+        body {
+            justify-content: center;
+        }
+    </style>
+}
+
+

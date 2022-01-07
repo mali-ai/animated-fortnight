@@ -1,0 +1,281 @@
+﻿@{
+    /**/
+
+    ViewBag.Title = "Home Screen";
+    Layout = "~/Views/Shared/_Products.cshtml";
+}
+
+@if (ViewBag.User != null)
+{
+<div>
+    @{string isAdmin = ViewBag.User.isAdmin == true ? "topnav-dark":"topnav-light";}
+    <div class=@isAdmin>
+        <a class="active" href="#">Assignment 5</a>
+        <a href="#">Welcome @ViewBag.User.name!</a>
+        @if (ViewBag.User.isAdmin == true)
+        {
+            <a href="/Products/Add">Add Product</a>
+        }
+        <a href="/Account/Edit">Update Profile</a>
+        <a href="/Account/Logout">Logout</a>
+    </div>
+</div>
+}
+
+<div style="display: flex;
+    flex-direction: column;
+    justify-content: center;">
+    <div style="margin-bottom: 10px; ">
+        <h1>All Products</h1>
+        <hr />
+    </div>
+    <div class="cards-container">
+        @if (ViewBag.Products == null || ViewBag.Products.Count == 0)
+        {
+            <h1>Nothing to show! :(</h1>
+        }
+        else
+        {
+            foreach (var item in ViewBag.Products)
+            {
+            <div class='card'>
+                <div id="id" style="display: none;">@item.productId</div>
+                <img src="/UploadedFiles/@item.picURL" alt="PEPSI" />
+                <h2>@item.name</h2>
+                <h4>Type: @item.typeName</h4>
+                <h4>Price: @item.price</h4>
+                <h4>Description: @item.description</h4>
+                @if (ViewBag.User != null && ViewBag.User.isAdmin == false)
+                {
+                    <div class='buttons'><button class='email' data-toggle="modal" data-target="#exampleModalCenter">Email to Friend</button></div>
+
+                    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLongTitle">Send to Friend</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div style="width: 100%;">
+                                        <input type="text" name="email" id="email" class="form-control" placeholder="Email to Send Product to..." aria-label="EMAIL" aria-describedby="basic-addon1" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="sendEmail">Send Email</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (ViewBag.User != null && ViewBag.User.isAdmin == true && item.updatedBy == ViewBag.User.userId)
+                {
+                    <h4>Updated By: @item.description</h4>
+                    <h4>Updated On: @item.updatedOn</h4>
+                    <div class='buttons'><button class='delete'>Delete</button><button class='edit'>Edit</button></div>
+                }
+            </div>
+            }
+        }
+    </div>
+    @if (ViewBag.User == null)
+    {
+        <button class="logout-1" onclick="window.location.href = '/Account/Login';">Sign In</button>
+    }
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#sendEmail').on('click', function () {
+                var id = parseInt($(this).parent().parent().parent().parent().parent().children('#id').html());
+                console.log($('#email').val());
+            var settings = {
+                type: "POST",
+                dataType: "json",
+                url: '@Url.Action("SendEmail", "Products")',
+                data: { ID: id, email: $('#email').val(),},
+                success: function (response) {
+                    if (response.data) {
+                        location.reload();
+                    }
+                },
+                error: function (err, type, httpStatus) {
+                    alert('Error has occured');
+                }
+            };
+
+            $.ajax(settings);
+            })
+
+            $(".delete").on('click', function () {
+                var settings = {
+                    type: "POST",
+                    dataType: "json",
+                    url: '@Url.Action("Delete", "Products")',
+                    data: { "id": parseInt($(this).parent().parent().children('#id').html()), },
+                    success: function (response) {
+                        if (response.data) {
+                            location.reload();
+                        }
+                    },
+                    error: function (err, type, httpStatus) {
+                        alert('Error has occured, Try Again!');
+                    }
+                };
+
+                $.ajax(settings);
+            })
+
+            $(".edit").on('click', function () {
+                var id = parseInt($(this).parent().parent().children('#id').html());
+                window.location.href = "/Products/Edit/" + id;
+            })
+        })
+    </script>
+}
+
+@section styles {
+    <style>
+        .cards-container {
+            width: 70%;
+            align-self: center;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px 10px;
+        }
+
+        .card {
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        img {
+            width: 90%;
+            height: 200%;
+            border-radius: 20px;
+        }
+
+        h2,
+        h4 {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            color: red;
+            background-color: #f8f7f4;
+            display: inline;
+            text-align: center;
+            margin: 5px 0px;
+        }
+
+        h1 {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            color: grey;
+            background-color: #f8f7f4;
+            text-align: center;
+        }
+
+        .logout-1 {
+            width: 10%;
+            position: fixed;
+            top: 100px;
+            right: 0px;
+            font-size: 1.5em;
+            border-left-style: solid;
+            border-left-width: thick;
+            background-color: #fff;
+            border-left-color: #dd8323;
+            color: #000;
+        }
+
+        .email {
+            background-color: #dd8323;
+            width: 100%;
+        }
+
+        .edit,
+        .delete {
+            all: initial;
+            color: white;
+            padding: 8px 8px 8px 8px;
+            border-radius: 5px;
+        }
+
+        .buttons {
+            display: flex;
+            column-gap: 3px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .menuItems {
+            padding: 10px;
+        }
+
+        .edit {
+            background-color: #fe8315;
+        }
+
+        .delete {
+            background-color: #da524c;
+        }
+
+        .topnav-dark {
+            overflow: hidden;
+            background-color: #333;
+        }
+
+            .topnav-dark a {
+                float: left;
+                color: #f2f2f2;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+                font-size: 17px;
+            }
+
+                .topnav-dark a:hover {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+                .topnav-dark a.active {
+                    background-color: #ddd;
+                    color: black;
+                }
+
+        .topnav-light {
+            overflow: hidden;
+            background-color: #f2f2f2;
+        }
+
+            .topnav-light a {
+                float: left;
+                color: #333;
+                text-align: center;
+                padding: 14px 16px;
+                text-decoration: none;
+                font-size: 17px;
+            }
+
+                .topnav-light a:hover {
+                    background-color: black;
+                    color: #ddd;
+                }
+
+                .topnav-light a.active {
+                    background-color: black;
+                    color: #ddd;
+                }
+    </style>
+}
+
+
+
